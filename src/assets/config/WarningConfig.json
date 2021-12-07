@@ -1,0 +1,53 @@
+{
+  "uris": {
+    "baseuri": "SYNAPSE_DYNAMIC_URI",
+    "fdburi": "FDB_API_URI/api/fdb/GetFDBWarnings"
+  },
+  "enablelogging": true,
+  "warningTypes": [],
+  "warningSeverity": [
+    {
+      "matchcriteria": {
+        "warningType": [
+          "sensitivity"
+        ],
+        "patientspecific": true,
+        "matchcondition": []
+      },
+      "severity": 4,
+      "overriderequired": true
+    },
+    {
+      "matchcriteria": {
+        "warningType": [
+          "precaution",
+          "contraindication"
+        ],
+        "patientspecific": true,
+        "matchcondition": [
+          {
+            "keycolumn": "fdbseverity",
+            "keyvalue": "specific"
+          }
+        ]
+      },
+      "severity": 4,
+      "overriderequired": true
+    },
+    {
+      "matchcriteria": {
+        "warningType": [
+          "drugdoubling",
+          "duplicatetherapy",
+          "drugequivalance",
+          "druginteraction"
+        ],
+        "patientspecific": true,
+        "matchcondition": []
+      },
+      "severity": 4,
+      "overriderequired": false,
+      "enableRBAC": false
+    }
+  ]
+}
