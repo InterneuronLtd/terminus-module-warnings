@@ -1,7 +1,7 @@
 //BEGIN LICENSE BLOCK 
 //Interneuron Terminus
 
-//Copyright(C) 2021  Interneuron CIC
+//Copyright(C) 2022  Interneuron CIC
 
 //This program is free software: you can redistribute it and/or modify
 //it under the terms of the GNU General Public License as published by
@@ -20,14 +20,15 @@
 //END LICENSE BLOCK 
 import { ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { Medication, Prescription } from './models/EPMA';
-import { WarningService } from './services/warning.service';
+import { WarningContexts, WarningService } from './services/warning.service';
 import { environment } from 'src/environments/environment';
 import { ApirequestService } from './services/apirequest.service';
 import { AppService } from './services/app.service';
 import { SubjectsService } from './services/subjects.service';
 import { Subscription } from 'rxjs';
-import { DisplayWarningType, PatientInfo, Warnings, WarningType } from './models/warning.model';
+import { DisplayWarningType, PatientInfo, WarningContext, Warnings, WarningType } from './models/warning.model';
 import { filter, filterparam, filterParams, filters, orderbystatement, selectstatement } from './models/filter.model';
+import { DataRequest } from './services/datarequest';
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -38,24 +39,35 @@ export class AppComponent implements OnInit, OnDestroy {
   @Input() personId: string;
   @Input() encouterId: string;
   @Input() refreshonload: boolean = true;
+  @Input() initialcontext: WarningContext | string = WarningContext.ip;
   @Output() onloadcomplete = new EventEmitter<any>();
   subscriptions = new Subscription();
   showExistingWarnings: boolean = true;
   showNewWarnings: boolean = false;
   showAllwarning: boolean = false;
   enableOverride: boolean = true;
+  ws: WarningService;
+  viewOnly:boolean =false;
+  filterDisplayByPresId = "";
+  filterDisplayByMedCode = ""; 
 
-  @Input() set warningContext(value: IContext) {
-    this.personId = value.personId;
-    this.encouterId = value.encouterId;
-    this.warningService.personId = value.personId;
-    this.warningService.encouterId = value.encouterId;
+
+  @Input() set moduleContext(value: IContext) {
+    this.appService.personId = value.personId;
+    this.appService.encounterId = value.encouterId;
     this.appService.apiService = value.apiService;
+    this.initialcontext = value.warningContext ?? WarningContext.ip
     this.refreshonload = value.refreshonload;
+    this.viewOnly = value.viewOnly;
+    this.filterDisplayByPresId = value.filterDisplayByPresId;
+    this.filterDisplayByMedCode = value.filterDisplayByMedCode;
     this.initConfigAndGetMeta(this.appService.apiService);
     this.showExistingWarnings = value.existingwarnings;
     this.showNewWarnings = value.newwarnings;
     this.enableOverride = value.enableOverride;
+    this.warningServices.encounterId = value.encouterId;
+    this.warningServices.personId = value.personId
+   
   }
   // overrideExistingWarning: Warnings[] = [];
   // otherExistingWarning: Warnings[] = [];
@@ -63,9 +75,10 @@ export class AppComponent implements OnInit, OnDestroy {
   // otherNewWarning: Warnings[] = [];
 
   dummyData: any;
-  constructor(private subjects: SubjectsService, public appService: AppService, private apiRequest: ApirequestService, public warningService: WarningService, public cd: ChangeDetectorRef) {
-    if (!environment.production)
-      this.initDevMode();
+  constructor(private subjects: SubjectsService, public appService: AppService,
+    private apiRequest: ApirequestService,
+    public warningServices: WarningContexts, public cd: ChangeDetectorRef, public dr: DataRequest) {
+
 
 
     this.subscriptions.add(this.subjects.refreshWarning.subscribe
@@ -76,10 +89,8 @@ export class AppComponent implements OnInit, OnDestroy {
   }
   initDevMode() {
     //commment out to push to framework - 3lines
-    this.appService.personId = "96ebefbe-a2e0-4e76-8802-e577e28fcc23"//"774c605e-c2c6-478d-90e6-0c1230b3b223";//"4d05aff8-123f-4ca9-be06-f9734905c02f"//"d91ef1fa-e9c0-45ba-9e92-1e1c4fd468a2"// "027c3400-24cd-45c1-9e3d-0f4475336394" ;//  "6b187a8b-1835-42c2-9cd5-91aa0e39f0f7";//"6b187a8b-1835-42c2-9cd5-91aa0e39f0f7"//"774c605e-c2c6-478d-90e6-0c1230b3b223";//"0422d1d0-a9d2-426a-b0b2-d21441e2f045";//"6b187a8b-1835-42c2-9cd5-91aa0e39f0f7"; //"17775da9-8e71-4a3f-9042-4cdcbf97efec";// "429904ca-19c1-4a3a-b453-617c7db513a3";//"027c3400-24cd-45c1-9e3d-0f4475336394";//"429904ca-19c1-4a3a-b453-617c7db513a3";
-    this.encouterId = "970c458b-181c-4263-a145-e296d45a4894";
-    this.warningService.encouterId = "970c458b-181c-4263-a145-e296d45a4894";
-    this.warningService.personId = "96ebefbe-a2e0-4e76-8802-e577e28fcc23";
+    this.appService.personId = "774c605e-c2c6-478d-90e6-0c1230b3b223"//"774c605e-c2c6-478d-90e6-0c1230b3b223";//"4d05aff8-123f-4ca9-be06-f9734905c02f"//"d91ef1fa-e9c0-45ba-9e92-1e1c4fd468a2"// "027c3400-24cd-45c1-9e3d-0f4475336394" ;//  "6b187a8b-1835-42c2-9cd5-91aa0e39f0f7";//"6b187a8b-1835-42c2-9cd5-91aa0e39f0f7"//"774c605e-c2c6-478d-90e6-0c1230b3b223";//"0422d1d0-a9d2-426a-b0b2-d21441e2f045";//"6b187a8b-1835-42c2-9cd5-91aa0e39f0f7"; //"17775da9-8e71-4a3f-9042-4cdcbf97efec";// "429904ca-19c1-4a3a-b453-617c7db513a3";//"027c3400-24cd-45c1-9e3d-0f4475336394";//"429904ca-19c1-4a3a-b453-617c7db513a3";
+    this.appService.encounterId = "0b85b0fa-73ce-494d-a0f4-8a973580dccc";
     let value: any = {};
     value.authService = {};
     value.authService.user = {};
@@ -94,8 +105,9 @@ export class AppComponent implements OnInit, OnDestroy {
     this.cd.detectChanges();
   }
   initConfigAndGetMetaDevMode(value: any) {
-    //this.warningService.showNewWarnings = true;
-    this.warningService.showExistingWarnings = false;
+    let ws = this.warningServices.GetWarningsInstanceWithCreate(WarningContext.ip);
+    //this.showExistingWarnings = true;
+    this.ws = ws;
     this.appService.apiService = value;
     this.subscriptions.add(this.apiRequest.getRequest("./assets/config/WarningConfig.json?V" + Math.random()).subscribe(
       (response) => {
@@ -117,40 +129,55 @@ export class AppComponent implements OnInit, OnDestroy {
             this.subjects.apiServiceReferenceChange.next();
             this.appService.logToConsole("personid is being published from init config");
             this.subjects.personIdChange.next();
+            this
             this.getAllPrescription(() => {
               let pi = new PatientInfo();
               pi.age = 40;
               pi.gender = 2;
               pi.weight = 70;
               pi.bsa = 0;
-              pi.allergens = [];
+              pi.allergens = [{
+                "uname": "Amoxicillin",
+                "code": "372687004",
+                "type": 1
+              }];
               let p = []// this.appService.Prescription.slice(1, 2);
-              let c = this.appService.Prescription;
+              this.dr.getAllPrescriptionMeta(() => {
+                let c = this.appService.Prescription.filter(
+                  p =>
+                    (p.prescriptionstatus_id == this.appService.MetaPrescriptionstatus.find(mp => mp.status === "active").prescriptionstatus_id
+                      ||
+                      p.prescriptionstatus_id == this.appService.MetaPrescriptionstatus.find(mp => mp.status === "modified").prescriptionstatus_id
+                      ||
+                      p.prescriptionstatus_id == this.appService.MetaPrescriptionstatus.find(mp => mp.status === "restarted").prescriptionstatus_id
 
-              this.warningService.GetExistingWarnings(this.refreshonload, (data) => {
-                this.warningService.RefreshCurrentMedicationWarnings(c, pi, (data) => {
-                  this.warningService.showExistingWarnings = true;
+                    )
+                    &&
+                    p.prescriptioncontext_id == this.appService.MetaPrescriptioncontext.find(pc => pc.context === "Inpatient").prescriptioncontext_id
+                )
+
+                ws.GetExistingWarnings(this.refreshonload, (data) => {
+                  ws.RefreshCurrentMedicationWarnings(c, pi, (data) => {
+                    this.showExistingWarnings = true;
+                  });
                 });
+
+                
               });
 
-
-              // this.warningService.GetNewWarnings(p, c, pi, (data) => {
-              //   this.warningService.showNewWarnings = true;
-              // });
-
-
-
-
+             
             });
-
           }));
-
       }));
   }
 
   initConfigAndGetMeta(value: any) {
     this.appService.apiService = value;
-    this.warningService.subscriptions = new Subscription();
+
+    let ws = this.warningServices.GetWarningsInstanceWithCreate(this.initialcontext);
+    this.ws = ws;
+
+    ws.subscriptions = new Subscription();
     this.subscriptions.add(this.apiRequest.getRequest("./assets/config/WarningConfig.json?V" + Math.random()).subscribe(
       (response) => {
         this.appService.appConfig = response;
@@ -159,19 +186,28 @@ export class AppComponent implements OnInit, OnDestroy {
         this.appService.enableLogging = this.appService.appConfig.enablelogging;
         this.appService.warningSeverity = this.appService.appConfig.warningSeverity;
         this.appService.warningTypes = this.appService.appConfig.warningTypes;
+        ws.GetExistingWarnings(this.refreshonload, (data) => {
+     
+          this.onloadcomplete.emit(this.warningServices);
 
-        this.warningService.GetExistingWarnings(this.refreshonload, (data) => {
-          this.onloadcomplete.emit(this.warningService);
         });
-
-
       }));
   }
-
-
+  FilterWarning(err:Warnings) {
+    if(this.viewOnly == true) {
+      if(!this.filterDisplayByPresId || !this.filterDisplayByMedCode) { return true}
+       else {
+      return(err.primaryprescriptionid==this.filterDisplayByPresId || err.secondaryprescriptionid == this.filterDisplayByPresId 
+        || err.primarymedicationcode== this.filterDisplayByMedCode || err.secondarymedicationcode == this.filterDisplayByMedCode)
+      } 
+    } else 
+    return true;
+  }
   getAllPrescription(cb: () => any) {
+
+
     this.subscriptions.add(
-      this.apiRequest.postRequest(this.appService.baseURI + "GetBaseViewListByPost/epma_prescriptiondetail", this.createPrescriptionFilter())
+      this.apiRequest.postRequest(this.appService.baseURI + "/GetBaseViewListByPost/epma_prescriptiondetail", this.createPrescriptionFilter())
         .subscribe((response) => {
           this.appService.Prescription = [];
           // this.appService.Medication = [];
@@ -183,10 +219,14 @@ export class AppComponent implements OnInit, OnDestroy {
               this.appService.Prescription.push(<Prescription>prescription);
             }
           }
+
           cb();
+
         })
     )
   }
+
+
   GetWarningDisplay(item) {
     let wt = DisplayWarningType[(<Warnings>item).warningtype];
     if ((<Warnings>item).msgtype && wt == DisplayWarningType.mandatoryinstruction) {
@@ -195,6 +235,16 @@ export class AppComponent implements OnInit, OnDestroy {
     else
       if ((<Warnings>item).fdbseverity != null && (wt == DisplayWarningType.contraindication || wt == DisplayWarningType.precaution || wt == DisplayWarningType.druginteraction)) {
         return wt + " - " + (<Warnings>item).fdbseverity;
+      }
+      else if (wt == DisplayWarningType.drugwarnings && (<Warnings>item).overriderequired) {
+        if (this.appService.warningSeverity.filter(z => z.matchcriteria.warningType.find(x => x.includes(WarningType.drugwarnings)
+          && z.matchcriteria.patientspecific == item.ispatientspecific
+          && z.matchcriteria.matchcondition.find
+            (mc => mc.keycolumn == "warningcategories" && mc.keyvalue == "Advice on possible excipients") != null
+          && (<Warnings>item).warningcategories.indexOf("Advice on possible excipients") != -1
+        )).length != 0) {
+          return wt + " - Advice on possible excipients ";
+        }
       }
       else
         return wt;
@@ -215,7 +265,8 @@ export class AppComponent implements OnInit, OnDestroy {
     return "";
   }
   ngOnInit() {
-
+    if (!environment.production)
+      this.initDevMode();
   }
   // showWarnings() {
   //   this.overrideExistingWarning = this.warningService.existingWarnigns.filter(x => x.overriderequired).sort((a, b) => a.warningtype.localeCompare(b.warningtype));
@@ -228,20 +279,25 @@ export class AppComponent implements OnInit, OnDestroy {
   // }
   saveComments(comment) {
     if (this.appService.AuthoriseAction('epma_override_warning')) {
-      this.warningService.UpdateOverrideMsg(comment, (data) => {
+      this.ws.UpdateOverrideMsg(comment, (data) => {
       });
     }
   }
   updateCommentStatus(comment) {
     if (this.appService.AuthoriseAction('epma_override_warning')) {
-      this.warningService.SetNewWarningStatus();
+      this.ws.SetNewWarningStatus();
       this.cd.detectChanges();
     }
   }
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
-    this.warningService = null;
-    this.appService = null;
+    this.warningServices.contexts.forEach(w => {
+      //w.subscriptions.unsubscribe();
+    });
+    this.ws = null;
+    this.ws = null;
+    this.warningServices = null;
+    console.log("unloaded main warnigns component");
   }
   private createPrescriptionFilter() {
     let condition = "person_id = @person_id and encounter_id = @encounter_id";
@@ -250,7 +306,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
     let pm = new filterParams();
     pm.filterparams.push(new filterparam("person_id", this.appService.personId));
-    pm.filterparams.push(new filterparam("encounter_id", this.encouterId));
+    pm.filterparams.push(new filterparam("encounter_id", this.appService.encounterId));
 
     let select = new selectstatement("SELECT *");
 
@@ -274,5 +330,9 @@ export class IContext {
   existingwarnings: boolean;
   newwarnings: boolean;
   enableOverride: boolean;
+  warningContext: WarningContext;
+  viewOnly: boolean;
+  filterDisplayByPresId: string;
+  filterDisplayByMedCode:string; 
 }
 

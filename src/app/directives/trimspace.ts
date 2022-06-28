@@ -18,11 +18,19 @@
 //You should have received a copy of the GNU General Public License
 //along with this program.If not, see<http://www.gnu.org/licenses/>.
 //END LICENSE BLOCK 
-
-export class Encounter {
-  person_id: string;
-  encounter_id: string;
-  admitdatetime: Date;
-  dischargedatetime: Date;
-  displayText: string
+ 
+import { Directive, ElementRef, HostListener, Input } from '@angular/core';
+@Directive({
+    selector: '[trimSpace]'
+})
+export class TrimSpaceDirective {
+    @Input('trimSpace') maxNumber: number;
+    @HostListener('keyup', ['$event'])
+    @HostListener('keydown', ['$event'])
+    onInput(e: any) {
+        this._el.nativeElement.value = this._el.nativeElement.value.trimStart(); 
+    }
+    constructor(private _el: ElementRef) {
+    }
 }
+

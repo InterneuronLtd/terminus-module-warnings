@@ -1,7 +1,7 @@
 //BEGIN LICENSE BLOCK 
 //Interneuron Terminus
 
-//Copyright(C) 2021  Interneuron CIC
+//Copyright(C) 2022  Interneuron CIC
 
 //This program is free software: you can redistribute it and/or modify
 //it under the terms of the GNU General Public License as published by
@@ -148,7 +148,7 @@ export class DataRequest implements OnDestroy {
     // get all metadata
     getAllPrescriptionMeta(cb: () => any) {
         this.subscriptions.add(
-            this.apiRequest.getRequest(this.appService.baseURI + "GetBaseViewList/epma_prescriptionmeta")
+            this.apiRequest.getRequest(this.appService.baseURI + "/GetBaseViewList/epma_prescriptionmeta")
                 .subscribe((response) => {
                     this.appService.oxygenDevices = [];
                     this.appService.oxygenprescriptionadditionalinfo = [];

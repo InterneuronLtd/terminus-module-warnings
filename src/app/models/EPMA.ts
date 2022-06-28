@@ -1,7 +1,7 @@
 //BEGIN LICENSE BLOCK 
 //Interneuron Terminus
 
-//Copyright(C) 2021  Interneuron CIC
+//Copyright(C) 2022  Interneuron CIC
 
 //This program is free software: you can redistribute it and/or modify
 //it under the terms of the GNU General Public License as published by
@@ -62,8 +62,14 @@ export class Prescription {
 	public otherindications: string;
 	public prescriptionsources: string;
 	public dispensingfrom: string;
-	
-	public __customWarning:any; 
+	public ismodifiedrelease: boolean;
+	public isgastroresistant: boolean;
+	public moatoip: boolean;
+	public otherprescriptionsource: string
+	public lastmodifiedfrom: any;
+	public startdatetime: any;
+
+	public __customWarning: any;
 	public __warningOverrideREQ: boolean;
 	public __severityWarning: string
 	public __routes: Array<Prescriptionroutes>
@@ -74,8 +80,11 @@ export class Prescription {
 	public oxygenadditionalinfo: string
 	public __editingreviewstatus: Prescriptionreviewstatus
 	public __index: number
-	public __initialreminder: Prescriptionreminders
-
+	public __initialreminder: Prescriptionreminders[]
+	public __nursinginstructions: Array<any>;
+	public __drugindications: any[]
+	public __drugcodes: any[]
+	public __basicGroup:string
 
 }
 

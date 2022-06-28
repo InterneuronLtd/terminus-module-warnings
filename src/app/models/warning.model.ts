@@ -1,7 +1,7 @@
 //BEGIN LICENSE BLOCK 
 //Interneuron Terminus
 
-//Copyright(C) 2021  Interneuron CIC
+//Copyright(C) 2022  Interneuron CIC
 
 //This program is free software: you can redistribute it and/or modify
 //it under the terms of the GNU General Public License as published by
@@ -43,12 +43,14 @@ export class Warnings {
   public warningcategories: string
   public ispatientspecific: boolean
   public msgtype: string
+  public sortOrder: number=0;
 }
 export class PatientWarnings {
   public epma_patientwarnings_id: string
   public person_id: string
   public encounter_id: string
   public warnings: string
+  public warningcontextid:string
 }
 export class FDBDataRequestPatientSpecific {
   public products: FDBDataRequest[] = [];
@@ -123,4 +125,9 @@ export enum EPMASeverity {
   ["Moderate"] = 3,
   ["Low"] = 2,
   ["Other"] = 1
+}
+
+export enum WarningContext {
+  ["ip"] = "ip",
+  ["mod"] = "mod"
 }

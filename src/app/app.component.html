@@ -1,7 +1,7 @@
 <!--BEGIN LICENSE BLOCK--> 
 <!--Interneuron Terminus
 
-Copyright(C) 2021  Interneuron CIC
+Copyright(C) 2022  Interneuron CIC
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,30 +18,30 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.If not, see<http://www.gnu.org/licenses/>. -->
 <!--END LICENSE BLOCK--> 
-<div style="min-height: 200px;">
-  <div class="card-header">
-    <strong>Warnings</strong>
+<div class="mb-3" style="min-height: 200px;" *ngIf = "ws">
+  <div class="card-header" *ngIf="!viewOnly">
+    <strong>Warnings</strong> <strong *ngIf="ws && ws.context=='mod'"> - Discharge Prescriptions</strong>
+     
     <span class="float-right" *ngIf="showNewWarnings">
-      {{warningService.overrideNewWarning.length}} High
-      severity /{{warningService.otherNewWarning.length}} Other</span>
-    <div class="spinner-border spinner-border-sm ml-1" *ngIf="warningService.loader">
+      {{ws.overrideNewWarning.length}} High
+      severity /{{ws.otherNewWarning.length}} Other</span>
+    <div class="spinner-border spinner-border-sm ml-1" *ngIf="ws.loader">
       <div role="status">
         <span class="sr-only">Loading...</span>
       </div>
     </div>
-    <span class="float-right" *ngIf="showExistingWarnings">{{warningService.overrideExistingWarning.length}}
-      High severity /{{warningService.otherExistingWarning.length}} Other</span>
-
+    <span class="float-right" *ngIf="showExistingWarnings">{{ws.overrideExistingWarning.length}}
+      High severity /{{ws.otherExistingWarning.length}} Other</span>
   </div>
 
   <div class="d-flex justify-content-center"
-    *ngIf="!warningService.loader && warningService.newWarnings.length==0 && warningService.existingWarnigns.length==0">
+    *ngIf="!ws.loader && ws.newWarnings.length==0 && ws.existingWarnigns.length==0">
     <b class="text-info">There are no warnings</b>
   </div>
   <div class="card-body modal-bodytemp">
     <ul *ngIf="showExistingWarnings" class="alert-danger small">
-      <li class="pt-1"  *ngFor="let err of warningService.existingerrors">
-        <div class="row">
+      <li class="pt-1"  *ngFor="let err of ws.existingerrors" [hidden]="!FilterWarning(err)">
+        <div class="row" *ngIf="FilterWarning(err)">
           <div class="col-11">
             <b> {{err.primarymedicationname}}</b> -
             <span [innerHtml]="err.message"></span>
@@ -51,7 +51,7 @@ along with this program.If not, see<http://www.gnu.org/licenses/>. -->
 
     </ul>
     <ul *ngIf="showNewWarnings" class="alert-danger">
-      <li class="pt-1"  *ngFor="let err of warningService.newerrors">
+      <li class="pt-1"  *ngFor="let err of ws.newerrors">
         <div class="row">
           <div class="col-11">
             <b> {{err.primarymedicationname}}</b> -
@@ -63,8 +63,8 @@ along with this program.If not, see<http://www.gnu.org/licenses/>. -->
     </ul>
     <ul class="list-group list-group-flush">
       <div *ngIf="showExistingWarnings">
-        <li class="list-group-item" *ngFor="let w of warningService.overrideExistingWarning">
-          <div class="row">
+        <li class="list-group-item" *ngFor="let w of ws.overrideExistingWarning" [hidden]="!FilterWarning(w)">
+          <div class="row"  *ngIf="FilterWarning(w)">
             <div class="col-1 custom-col-1">
               <div class="warning-img"></div>
             </div>
@@ -74,22 +74,22 @@ along with this program.If not, see<http://www.gnu.org/licenses/>. -->
               <span [innerHtml]="w.message"></span>
             </div>
           </div>
-          <div class="row" *ngIf="w.overriderequired">
+          <div class="row" *ngIf="w.overriderequired && viewOnly!=true">
             <div class="col-1 custom-col-1">
 
             </div>
             <div class="col-11" style="display: flex;">
               <span *ngIf="w.overriderequired==true" style="min-width: 120px;" class="h6">Override reason: </span><input
-                [disabled]="warningService.loader==true || !appService.AuthoriseAction('epma_override_warning') || !enableOverride" type="text" (change)="saveComments(w)"
+                [disabled]="ws.loader==true || !appService.AuthoriseAction('epma_override_warning') || !enableOverride" type="text" 
                 [(ngModel)]="w.overridemessage" name="overridemessage"
-                
-                [ngClass]="{'form-control-warning-red': !w.overridemessage, 'form-control-warning' : w.overridemessage }" />
+                trimSpace
+                [ngClass]="{'form-control-warning-red': !w.overridemessage  || w.overridemessage=='', 'form-control-warning' : w.overridemessage }" />
             </div>
           </div>
         </li>
       </div>
       <div *ngIf="showNewWarnings">
-        <li class="list-group-item" *ngFor="let w of warningService.overrideNewWarning">
+        <li class="list-group-item" *ngFor="let w of ws.overrideNewWarning">
           <div class="row">
             <div class="col-1 custom-col-1">
               <div class="warning-img"></div>
@@ -105,8 +105,8 @@ along with this program.If not, see<http://www.gnu.org/licenses/>. -->
             <div class="col" style="display: flex;">
               <span *ngIf="w.overriderequired==true" style="min-width: 110px;" class="h6">Override reason: </span><input
                 type="text" [(ngModel)]="w.overridemessage" *ngIf="appService.AuthoriseAction('epma_override_warning')"
-                
-                [ngClass]="{'form-control-warning-red': !w.overridemessage, 'form-control-warning' : w.overridemessage }"
+                trimSpace
+                [ngClass]="{'form-control-warning-red': !w.overridemessage || w.overridemessage=='',  'form-control-warning' : w.overridemessage }"
                 (change)="updateCommentStatus(w)" />
             </div>
           </div>
@@ -117,22 +117,24 @@ along with this program.If not, see<http://www.gnu.org/licenses/>. -->
 
     </ul>
     <a class="text-primary"
-      *ngIf="(showNewWarnings && warningService.otherNewWarning.length>0) || (showExistingWarnings && warningService.otherExistingWarning.length>0)"
+      *ngIf="(showNewWarnings && ws.otherNewWarning.length>0) || (showExistingWarnings && ws.otherExistingWarning.length>0)"
       style="cursor:pointer;" (click)="ToggleShowLowPriorityWarnings()">
       <span *ngIf="!showAllwarning">Show all warnings</span>
       <span *ngIf="showAllwarning">Hide all warnings</span></a>
     <div *ngIf="showAllwarning">
       <ul class="list-group list-group-flush">
         <div *ngIf="showExistingWarnings">
-          <li class="list-group-item" *ngFor="let w of warningService.otherExistingWarning">
+          <li class="list-group-item" *ngFor="let w of ws.otherExistingWarning" [hidden]="!FilterWarning(w)">
+            <span *ngIf="FilterWarning(w)">
             <b>{{GetWarningDisplay(w)}}</b> -
             <b>{{DisplayPrimaryMedicationName(w)}}</b>
             <span [innerHtml]="w.message"></span>
+           </span>
           </li>
 
         </div>
         <div *ngIf="showNewWarnings">
-          <li class="list-group-item" *ngFor="let w of warningService.otherNewWarning">
+          <li class="list-group-item" *ngFor="let w of ws.otherNewWarning">
             <b>{{GetWarningDisplay(w)}}</b> -
             <b>{{DisplayPrimaryMedicationName(w)}}</b>
             <span [innerHtml]="w.message"></span>
