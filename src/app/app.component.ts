@@ -1,7 +1,7 @@
 //BEGIN LICENSE BLOCK 
 //Interneuron Terminus
 
-//Copyright(C) 2023  Interneuron Holdings Ltd
+//Copyright(C) 2024  Interneuron Limited
 
 //This program is free software: you can redistribute it and/or modify
 //it under the terms of the GNU General Public License as published by
@@ -54,14 +54,14 @@ export class AppComponent implements OnInit, OnDestroy {
 
   @Input() set moduleContext(value: IContext) {
     this.appService.personId = value.personId;
-    this.appService.encounterId = value.encouterId;
+    //this.appService.encounterId = value.encouterId;
     this.appService.apiService = value.apiService;
     this.initialcontext = value.warningContext ?? WarningContext.ip
     this.refreshonload = value.refreshonload;
     this.viewOnly = value.viewOnly;
     this.filterDisplayByPresId = value.filterDisplayByPresId;
     this.filterDisplayByMedCode = value.filterDisplayByMedCode;
-    this.initConfigAndGetMeta(this.appService.apiService);
+    this.initConfigAndGetMeta(this.appService.apiService,value);
     this.showExistingWarnings = value.existingwarnings;
     this.showNewWarnings = value.newwarnings;
     this.enableOverride = value.enableOverride;
@@ -88,9 +88,6 @@ export class AppComponent implements OnInit, OnDestroy {
 
   }
   initDevMode() {
-    //commment out to push to framework - 3lines
-    this.appService.personId = "774c605e-c2c6-478d-90e6-0c1230b3b223"//"774c605e-c2c6-478d-90e6-0c1230b3b223";//"4d05aff8-123f-4ca9-be06-f9734905c02f"//"d91ef1fa-e9c0-45ba-9e92-1e1c4fd468a2"// "027c3400-24cd-45c1-9e3d-0f4475336394" ;//  "6b187a8b-1835-42c2-9cd5-91aa0e39f0f7";//"6b187a8b-1835-42c2-9cd5-91aa0e39f0f7"//"774c605e-c2c6-478d-90e6-0c1230b3b223";//"0422d1d0-a9d2-426a-b0b2-d21441e2f045";//"6b187a8b-1835-42c2-9cd5-91aa0e39f0f7"; //"17775da9-8e71-4a3f-9042-4cdcbf97efec";// "429904ca-19c1-4a3a-b453-617c7db513a3";//"027c3400-24cd-45c1-9e3d-0f4475336394";//"429904ca-19c1-4a3a-b453-617c7db513a3";
-    this.appService.encounterId = "0b85b0fa-73ce-494d-a0f4-8a973580dccc";
     let value: any = {};
     value.authService = {};
     value.authService.user = {};
@@ -108,6 +105,8 @@ export class AppComponent implements OnInit, OnDestroy {
     let ws = this.warningServices.GetWarningsInstanceWithCreate(WarningContext.ip);
     //this.showExistingWarnings = true;
     this.ws = ws;
+    this.ws.personId = "b0d70586-3206-4bd2-93f8-86a9947a8659"//"774c605e-c2c6-478d-90e6-0c1230b3b223";//"4d05aff8-123f-4ca9-be06-f9734905c02f"//"d91ef1fa-e9c0-45ba-9e92-1e1c4fd468a2"// "027c3400-24cd-45c1-9e3d-0f4475336394" ;//  "6b187a8b-1835-42c2-9cd5-91aa0e39f0f7";//"6b187a8b-1835-42c2-9cd5-91aa0e39f0f7"//"774c605e-c2c6-478d-90e6-0c1230b3b223";//"0422d1d0-a9d2-426a-b0b2-d21441e2f045";//"6b187a8b-1835-42c2-9cd5-91aa0e39f0f7"; //"17775da9-8e71-4a3f-9042-4cdcbf97efec";// "429904ca-19c1-4a3a-b453-617c7db513a3";//"027c3400-24cd-45c1-9e3d-0f4475336394";//"429904ca-19c1-4a3a-b453-617c7db513a3";
+    this.ws.encounterId = "3bc0d957-df84-43e2-8eda-0298754d5726";
     this.appService.apiService = value;
     this.subscriptions.add(this.apiRequest.getRequest("./assets/config/WarningConfig.json?V" + Math.random()).subscribe(
       (response) => {
@@ -118,7 +117,7 @@ export class AppComponent implements OnInit, OnDestroy {
         this.appService.warningSeverity = this.appService.appConfig.warningSeverity;
         this.appService.warningTypes = this.appService.appConfig.warningTypes;
 
-        this.subscriptions.add(this.apiRequest.getRequest(`${this.appService.baseURI}/GetObject?synapsenamespace=core&synapseentityname=person&id=${this.appService.personId}`).subscribe(
+        this.subscriptions.add(this.apiRequest.getRequest(`${this.appService.baseURI}/GetObject?synapsenamespace=core&synapseentityname=person&id=${this.ws.personId}`).subscribe(
           (person) => {
             person = JSON.parse(person);
             if (person && person.dateofbirth) {
@@ -142,7 +141,7 @@ export class AppComponent implements OnInit, OnDestroy {
                 "type": 1
               }];
               let p = []// this.appService.Prescription.slice(1, 2);
-              this.dr.getAllPrescriptionMeta(() => {
+              this.getAllPrescriptionMeta(() => {
                 let c = this.appService.Prescription.filter(
                   p =>
                     (p.prescriptionstatus_id == this.appService.MetaPrescriptionstatus.find(mp => mp.status === "active").prescriptionstatus_id
@@ -171,10 +170,54 @@ export class AppComponent implements OnInit, OnDestroy {
       }));
   }
 
-  initConfigAndGetMeta(value: any) {
-    this.appService.apiService = value;
+  // get all metadata
+  getAllPrescriptionMeta(cb: () => any) {
+    this.subscriptions.add(
+        this.apiRequest.getRequest(this.appService.baseURI + "/GetBaseViewList/epma_prescriptionmeta")
+            .subscribe((response) => {
+                this.appService.oxygenDevices = [];
+                this.appService.oxygenprescriptionadditionalinfo = [];
+                this.appService.obsScales = [];
+                this.appService.MetaReviewstatus = [];
+                this.appService.MetaPrescriptionstatus = [];
+                this.appService.MetaPrescriptionDuration = [];
+                this.appService.MetaPrescriptionadditionalcondition = [];
+                this.appService.MetaPrescriptionSource = [];
+                this.appService.MetaPrescriptioncontext = [];
+
+                for (let meta of JSON.parse(response)) {
+                    switch (meta.field) {
+                        case "oxygendevices": this.appService.oxygenDevices = JSON.parse(meta.data);
+                            break;
+                        case "oxygenprescriptionadditionalinfo": this.appService.oxygenprescriptionadditionalinfo = JSON.parse(meta.data);
+                            break;
+                        case "observationscaletype": this.appService.obsScales = JSON.parse(meta.data);
+                            break;
+                        case "reviewstatus": this.appService.MetaReviewstatus = JSON.parse(meta.data);
+                            break;
+                        case "prescriptionstatus": this.appService.MetaPrescriptionstatus = JSON.parse(meta.data);
+                            break;
+                        case "prescriptionduration": this.appService.MetaPrescriptionDuration = JSON.parse(meta.data);
+                            break;
+                        case "prescriptionadditionalconditions": this.appService.MetaPrescriptionadditionalcondition = JSON.parse(meta.data);
+                            break;
+                        case "prescriptionsource": this.appService.MetaPrescriptionSource = JSON.parse(meta.data);
+                            break;
+                        case "prescriptioncontext": this.appService.MetaPrescriptioncontext = JSON.parse(meta.data);
+
+                    }
+                }
+                cb();
+            })
+    )
+}
+
+  initConfigAndGetMeta(apiService: any, value:IContext) {
+    this.appService.apiService = apiService;
 
     let ws = this.warningServices.GetWarningsInstanceWithCreate(this.initialcontext);
+    ws.encounterId = value.encouterId;
+    ws.personId = value.personId;
     this.ws = ws;
 
     ws.subscriptions = new Subscription();
@@ -305,8 +348,8 @@ export class AppComponent implements OnInit, OnDestroy {
     f.filters.push(new filter(condition));
 
     let pm = new filterParams();
-    pm.filterparams.push(new filterparam("person_id", this.appService.personId));
-    pm.filterparams.push(new filterparam("encounter_id", this.appService.encounterId));
+    pm.filterparams.push(new filterparam("person_id", this.ws.personId));
+    pm.filterparams.push(new filterparam("encounter_id", this.ws.encounterId));
 
     let select = new selectstatement("SELECT *");
 

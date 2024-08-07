@@ -1,7 +1,7 @@
 <!--BEGIN LICENSE BLOCK--> 
 <!--Interneuron Terminus
 
-Copyright(C) 2023  Interneuron Holdings Ltd
+Copyright(C) 2024  Interneuron Limited
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -116,7 +116,7 @@ along with this program.If not, see<http://www.gnu.org/licenses/>. -->
 
 
     </ul>
-    <a class="text-primary"
+    <a class="text-primary" id="{{initialcontext}}_ToggleShowLowPriorityWarnings"
       *ngIf="(showNewWarnings && ws.otherNewWarning.length>0) || (showExistingWarnings && ws.otherExistingWarning.length>0)"
       style="cursor:pointer;" (click)="ToggleShowLowPriorityWarnings()">
       <span *ngIf="!showAllwarning">Show all warnings</span>

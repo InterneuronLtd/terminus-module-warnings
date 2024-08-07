@@ -1,7 +1,7 @@
 //BEGIN LICENSE BLOCK 
 //Interneuron Terminus
 
-//Copyright(C) 2023  Interneuron Holdings Ltd
+//Copyright(C) 2024  Interneuron Limited
 
 //This program is free software: you can redistribute it and/or modify
 //it under the terms of the GNU General Public License as published by
@@ -77,8 +77,14 @@ export class PatientInfo {
   public weight: number
   public bsa: number
   public allergens: Allergens[]
+  public conditions: Conditions[]
 }
 
+export class Conditions {
+  public uname: string
+  public type: number
+  public code: string
+}
 export class Allergens {
   public uname: string
   public type: number

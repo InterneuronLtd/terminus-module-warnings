@@ -1,7 +1,7 @@
 //BEGIN LICENSE BLOCK 
 //Interneuron Terminus
 
-//Copyright(C) 2023  Interneuron Holdings Ltd
+//Copyright(C) 2024  Interneuron Limited
 
 //This program is free software: you can redistribute it and/or modify
 //it under the terms of the GNU General Public License as published by
@@ -79,7 +79,9 @@ export class WarningService implements OnDestroy {
     public customwarning: Warnings[] = [];
     public existingerrors: Warnings[] = [];
     public newerrors: Warnings[] = [];
-    public context: WarningContext | string
+    public context: WarningContext | string;
+    public encounterId:string;
+    public personId:string;
     constructor(private apiRequest: ApirequestService, private appService: AppService, private subjects: SubjectsService) {
 
     }
@@ -92,7 +94,7 @@ export class WarningService implements OnDestroy {
             this.loader = true;
             console.log("loader true from getexisting warnings" + this.context);
             this.subjects.refreshWarning.next();
-            this.subscriptions.add(this.apiRequest.getRequest(this.appService.baseURI + "/GetListByAttribute?synapsenamespace=local&synapseentityname=epma_patientwarnings&synapseattributename=warningcontextid&attributevalue=" + this.appService.encounterId + "_" + this.context).subscribe(
+            this.subscriptions.add(this.apiRequest.getRequest(this.appService.baseURI + "/GetListByAttribute?synapsenamespace=local&synapseentityname=epma_patientwarnings&synapseattributename=warningcontextid&attributevalue=" + this.encounterId + "_" + this.context).subscribe(
                 (response) => {
                     let responseArray: PatientWarnings[] = JSON.parse(response);
                     if (responseArray.length > 0) {
@@ -143,8 +145,14 @@ export class WarningService implements OnDestroy {
                     //Check config for which warning needs override message and update overrtied required column                 
                     let d = this.GetEPMASeverityFromConfig(item);
                     if (d.length > 0) {
-                        item.overriderequired = d[0].overriderequired;
-                        item.severity = d[0].severity;
+                        let ignoreDuplicate= CurrentPrescriptions.find(x=>x.prescription_id == item.primaryprescriptionid || x.prescription_id == item.secondaryprescriptionid);
+                        if(ignoreDuplicate && ignoreDuplicate.__ignoreDuplicateWarnings =="1" && (item.warningtype==WarningType.drugdoubling || item.warningtype==WarningType.drugequivalance || item.warningtype==WarningType.duplicatetherapy)) {
+                            item.overriderequired = false;
+                            item.severity = EPMASeverity.Low;
+                        } else {
+                            item.overriderequired = d[0].overriderequired;
+                            item.severity = d[0].severity;
+                        }
                     }
                     else if (item.warningtype != WarningType.custom) {
                         item.overriderequired = false;
@@ -183,13 +191,13 @@ export class WarningService implements OnDestroy {
                 this.existingWarnigns = [];
                 var upsertManager = new UpsertTransactionManager();
                 upsertManager.beginTran(this.appService.baseURI, this.apiRequest);
-                upsertManager.addEntity('local', 'epma_patientwarnings', { "warningcontextid": this.appService.encounterId + "_" + this.context }, "del");
+                upsertManager.addEntity('local', 'epma_patientwarnings', { "warningcontextid": this.encounterId + "_" + this.context }, "del");
                 let pwarning = new PatientWarnings();
-                pwarning.person_id = this.appService.personId;
+                pwarning.person_id = this.personId;
                 pwarning.epma_patientwarnings_id = uuid();
-                pwarning.encounter_id = this.appService.encounterId;
+                pwarning.encounter_id = this.encounterId;
                 pwarning.warnings = JSON.stringify(responseArray);
-                pwarning.warningcontextid = this.appService.encounterId + "_" + this.context;
+                pwarning.warningcontextid = this.encounterId + "_" + this.context;
                 upsertManager.addEntity('local', "epma_patientwarnings", pwarning);
 
                 upsertManager.save((resp) => {
@@ -229,12 +237,12 @@ export class WarningService implements OnDestroy {
 
         var upsertManager = new UpsertTransactionManager();
         upsertManager.beginTran(this.appService.baseURI, this.apiRequest);
-        upsertManager.addEntity('local', 'epma_patientwarnings', { "warningcontextid": this.appService.encounterId + "_" + this.context }, "del");
+        upsertManager.addEntity('local', 'epma_patientwarnings', { "warningcontextid": this.encounterId + "_" + this.context }, "del");
         let pwarning = new PatientWarnings();
-        pwarning.person_id = this.appService.personId;
+        pwarning.person_id = this.personId;
         pwarning.epma_patientwarnings_id = uuid();
-        pwarning.encounter_id = this.appService.encounterId;
-        pwarning.warningcontextid = this.appService.encounterId + "_" + this.context;
+        pwarning.encounter_id = this.encounterId;
+        pwarning.warningcontextid = this.encounterId + "_" + this.context;
         this.existingWarnigns.forEach((item) => {
             item.overridemessage = item.overridemessage?.trim();
         });
@@ -314,11 +322,16 @@ export class WarningService implements OnDestroy {
                         //Check config for which warning needs override message and update overrtied required column
                         let d = this.GetEPMASeverityFromConfig(item);
                         if (d.length > 0) {
-                            item.overriderequired = d[0].overriderequired;
-                            item.severity = d[0].severity;
+                            let ignoreDuplicate= prosp.find(x=>x.prescription_id == item.primaryprescriptionid || x.prescription_id == item.secondaryprescriptionid);
+                            if(ignoreDuplicate && ignoreDuplicate.__ignoreDuplicateWarnings =="1" && (item.warningtype==WarningType.drugdoubling || item.warningtype==WarningType.drugequivalance || item.warningtype==WarningType.duplicatetherapy)) {
+                                item.overriderequired = false;
+                                item.severity = EPMASeverity.Low;
+                            } else {
+                                item.overriderequired = d[0].overriderequired;
+                                item.severity = d[0].severity;
+                            }
                         }
                         else if (item.warningtype != WarningType.custom) {
-
                             item.overriderequired = false;
                             item.severity = EPMASeverity.Low;
                         }
@@ -384,8 +397,8 @@ export class WarningService implements OnDestroy {
         let exWarning = this.existingWarnigns.slice();
         //for each row with matching ids based on warning type, copy the comments to NewWarnings object, only if the new warning object comment is empty
         this.newWarnings.forEach(item => {
-            item.person_id = this.appService.encounterId;
-            item.encounter_id = this.appService.encounterId;
+            item.person_id = this.personId;
+            item.encounter_id = this.encounterId;
             item.overridemessage = item.overridemessage?.trim();
             // TO DO: add more condition
             if (item.warningtype == WarningType.drugdoubling || item.warningtype == WarningType.drugequivalance
@@ -412,12 +425,12 @@ export class WarningService implements OnDestroy {
         });
         var upsertManager = new UpsertTransactionManager();
         upsertManager.beginTran(this.appService.baseURI, this.apiRequest);
-        upsertManager.addEntity('local', 'epma_patientwarnings', { "warningcontextid": this.appService.encounterId + "_" + this.context }, "del");
+        upsertManager.addEntity('local', 'epma_patientwarnings', { "warningcontextid": this.encounterId + "_" + this.context }, "del");
         let pwarning = new PatientWarnings();
-        pwarning.person_id = this.appService.personId;
+        pwarning.person_id = this.personId;
         pwarning.epma_patientwarnings_id = uuid();
-        pwarning.encounter_id = this.appService.encounterId;
-        pwarning.warningcontextid = this.appService.encounterId + "_" + this.context;
+        pwarning.encounter_id = this.encounterId;
+        pwarning.warningcontextid = this.encounterId + "_" + this.context;
         pwarning.warnings = JSON.stringify(exWarning);
         upsertManager.addEntity('local', "epma_patientwarnings", pwarning);
         upsertManager.save((resp) => {
@@ -572,29 +585,7 @@ export class WarningService implements OnDestroy {
         }
         // this.showNewWarnings = true;
     }
-    // DeleteAndInsertWarning(deleteWarning: Warnings[], insertWarning: Warnings[]) {
-    //     var upsertManager = new UpsertTransactionManager();
-    //     upsertManager.beginTran(this.appService.baseURI, this.apiRequest);
-    //     upsertManager.addEntity('local', 'epma_warnings', { "encounter_id": this.appService.encounterId }, "del");
-    //     insertWarning.forEach(med => {
-    //         med.person_id = this.appService.personId;
-    //         med.encounter_id = this.appService.encounterId;
-    //         upsertManager.addEntity('local', "epma_warnings", med);
-    //     });
-    //     upsertManager.save((resp) => {
-    //         this.appService.logToConsole(resp);
-    //         this.existingWarnigns = [];
-    //         this.existingWarnigns = insertWarning;
-    //         this.setWarningDisplayArrays();
 
-    //         upsertManager.destroy();
-    //     },
-    //         (error) => {
-    //             this.appService.logToConsole(error);
-    //             upsertManager.destroy();
-    //         }
-    //     );
-    // }
     getFDBProducts(ProspectivePrescriptions: Prescription[], CurrentPrescriptions: Prescription[], patientInfo: PatientInfo, type: string) {
         let products = new FDBDataRequestPatientSpecific();
         let productCurr: FDBDataRequest[] = [];
