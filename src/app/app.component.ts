@@ -1,7 +1,7 @@
 //BEGIN LICENSE BLOCK 
 //Interneuron Terminus
 
-//Copyright(C) 2024  Interneuron Limited
+//Copyright(C) 2025  Interneuron Limited
 
 //This program is free software: you can redistribute it and/or modify
 //it under the terms of the GNU General Public License as published by
@@ -125,9 +125,9 @@ export class AppComponent implements OnInit, OnDestroy {
             }
             //emit events after getting initial config. //this happens on first load only.
             this.appService.logToConsole("Service reference is being published from init config");
-            this.subjects.apiServiceReferenceChange.next();
+            this.subjects.apiServiceReferenceChange.next(true);
             this.appService.logToConsole("personid is being published from init config");
-            this.subjects.personIdChange.next();
+            this.subjects.personIdChange.next(true);
             this
             this.getAllPrescription(() => {
               let pi = new PatientInfo();

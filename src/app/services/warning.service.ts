@@ -1,7 +1,7 @@
 //BEGIN LICENSE BLOCK 
 //Interneuron Terminus
 
-//Copyright(C) 2024  Interneuron Limited
+//Copyright(C) 2025  Interneuron Limited
 
 //This program is free software: you can redistribute it and/or modify
 //it under the terms of the GNU General Public License as published by
@@ -93,7 +93,7 @@ export class WarningService implements OnDestroy {
         if (refreshfromdb) {
             this.loader = true;
             console.log("loader true from getexisting warnings" + this.context);
-            this.subjects.refreshWarning.next();
+            this.subjects.refreshWarning.next(true);
             this.subscriptions.add(this.apiRequest.getRequest(this.appService.baseURI + "/GetListByAttribute?synapsenamespace=local&synapseentityname=epma_patientwarnings&synapseattributename=warningcontextid&attributevalue=" + this.encounterId + "_" + this.context).subscribe(
                 (response) => {
                     let responseArray: PatientWarnings[] = JSON.parse(response);
@@ -108,7 +108,7 @@ export class WarningService implements OnDestroy {
                     this.SetExistingWarningStatus();
                     this.loader = false;
                     console.log("loader false from getexisting warnings" + this.context);
-                    this.subjects.refreshWarning.next();
+                    this.subjects.refreshWarning.next(true);
 
                     cb(responseArray);
                 }
@@ -116,7 +116,7 @@ export class WarningService implements OnDestroy {
         } else {
             this.loader = false;
             console.log("loader false from getexisting warnings no refresh" + this.context);
-            this.subjects.refreshWarning.next();
+            this.subjects.refreshWarning.next(true);
             cb(this.existingWarnigns.slice());
         }
     }
@@ -127,7 +127,7 @@ export class WarningService implements OnDestroy {
         this.existingWarningsStatus = false;
         this.loader = true;
         console.log("loader true from refresh current mnedication warnings" + this.context);
-        this.subjects.refreshWarning.next();
+        this.subjects.refreshWarning.next(true);
         this.refreshSubscriptions.unsubscribe();
         this.refreshSubscriptions = new Subscription();
         this.refreshSubscriptions.add(this.apiRequest.postRequest(this.appService.fdbURI, products).subscribe(
@@ -205,7 +205,7 @@ export class WarningService implements OnDestroy {
                     this.loader = false;
                     console.log("loader false from refresh current mnedication warnings" + this.context);
 
-                    this.subjects.refreshWarning.next();
+                    this.subjects.refreshWarning.next(true);
                     this.existingWarnigns = responseArray;
                     this.setWarningDisplayArrays();
                     upsertManager.destroy();
@@ -220,7 +220,7 @@ export class WarningService implements OnDestroy {
                         this.loader = false;
                         console.log("loader true from refresh current mnedication warnings error" + this.context);
 
-                        this.subjects.refreshWarning.next();
+                        this.subjects.refreshWarning.next(true);
                         cb("error", error);
                     }
                 );
@@ -233,7 +233,7 @@ export class WarningService implements OnDestroy {
         this.loader = true;
         console.log("loader true from override msg" + this.context);
 
-        this.subjects.refreshWarning.next();
+        this.subjects.refreshWarning.next(true);
 
         var upsertManager = new UpsertTransactionManager();
         upsertManager.beginTran(this.appService.baseURI, this.apiRequest);
@@ -254,11 +254,11 @@ export class WarningService implements OnDestroy {
 
             this.appService.logToConsole(resp);
             this.loader = false;
-            this.subjects.refreshWarning.next();
+            this.subjects.refreshWarning.next(true);
             this.setWarningDisplayArrays();
             upsertManager.destroy();
             this.SetExistingWarningStatus();
-            this.subjects.refreshWarning.next();
+            this.subjects.refreshWarning.next(true);
             cb("success", this.existingWarnigns.slice(), resp.version);
         },
             (error) => {
@@ -269,7 +269,7 @@ export class WarningService implements OnDestroy {
                 upsertManager.destroy();
                 this.SetExistingWarningStatus();
                 this.loader = false;
-                this.subjects.refreshWarning.next();
+                this.subjects.refreshWarning.next(true);
                 cb("error", error);
             }
         );
@@ -296,7 +296,7 @@ export class WarningService implements OnDestroy {
             this.loader = true;
             console.log("loader true from get new warnings" + this.context);
 
-            this.subjects.refreshWarning.next();
+            this.subjects.refreshWarning.next(true);
             this.newWarningSubscriptions.unsubscribe();
             this.newWarningSubscriptions = new Subscription();
             this.newWarningSubscriptions.add(this.apiRequest.postRequest(this.appService.fdbURI, products).subscribe(
@@ -387,7 +387,7 @@ export class WarningService implements OnDestroy {
         this.loader = true;
         console.log("loader true from  commit warnings" + this.context);
 
-        this.subjects.refreshWarning.next();
+        this.subjects.refreshWarning.next(true);
         // For contraindications, precautions, drugwarnings , mandatoryinstructions, safetymessages 
         // get all existing comments
         let comments = this.existingWarnigns.filter(x => (x.warningtype == WarningType.contraindication
@@ -892,7 +892,7 @@ export class WarningService implements OnDestroy {
         this.existingerrors.forEach(e => e.message = e.message.replace("Dose Range Check, Pharmacological Equivalence,", ""));
         this.newerrors.forEach(e => e.message = e.message.replace("Dose Range Check, Pharmacological Equivalence,", ""));
 
-        this.subjects.refreshWarning.next();
+        this.subjects.refreshWarning.next(true);
 
         this.overrideExistingWarning.sort((a, b) => {
             return (a.overriderequired === b.overriderequired) ? 0 : a.overriderequired ? -1 : 1;

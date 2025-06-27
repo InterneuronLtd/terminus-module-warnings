@@ -30,7 +30,7 @@
             ],
             "scripts": [
               "./node_modules/jquery/dist/jquery.min.js",
-              "./node_modules/popper.js/dist/umd/popper.min.js",
+              "./node_modules/@popperjs/core/dist/umd/popper.min.js",
               "./node_modules/bootstrap/dist/js/bootstrap.min.js"
             ],
             "vendorChunk": true,
@@ -51,7 +51,6 @@
               "optimization": true,
               "outputHashing": "all",
               "sourceMap": false,
-              "extractCss": true,
               "namedChunks": false,
               "aot": true,
               "extractLicenses": true,
@@ -86,7 +85,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "terminus-module-warnings:build"
+            "buildTarget": "terminus-module-warnings:build"
           }
         },
         "test": {
@@ -127,7 +126,6 @@
       }
     }
   },
-  "defaultProject": "terminus-module-warnings",
   "cli": {
     "analytics": false
   }

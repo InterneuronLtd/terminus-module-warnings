@@ -1,7 +1,7 @@
 //BEGIN LICENSE BLOCK 
 //Interneuron Terminus
 
-//Copyright(C) 2024  Interneuron Limited
+//Copyright(C) 2025  Interneuron Limited
 
 //This program is free software: you can redistribute it and/or modify
 //it under the terms of the GNU General Public License as published by
@@ -20,24 +20,17 @@
 //END LICENSE BLOCK 
 import { BrowserModule } from '@angular/platform-browser';
 import { Injector, NgModule } from '@angular/core';
-import { HttpClientModule } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { AppComponent } from './app.component';
 import { FormsModule } from '@angular/forms';
 import {createCustomElement} from '@angular/elements';
 import { TrimSpaceDirective } from './directives/trimspace';
-@NgModule({
-    declarations: [
+@NgModule({ declarations: [
         AppComponent,
         TrimSpaceDirective
     ],
-    imports: [
-        BrowserModule,
-        HttpClientModule,
-        FormsModule
-    ],
-    providers: [],
-    bootstrap: []
-})
+    bootstrap: [], imports: [BrowserModule,
+        FormsModule], providers: [provideHttpClient(withInterceptorsFromDi())] })
 export class AppModule {
   constructor(private injector: Injector) {
   }

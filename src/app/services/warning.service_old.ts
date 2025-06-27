@@ -1,7 +1,7 @@
 //BEGIN LICENSE BLOCK 
 //Interneuron Terminus
 
-//Copyright(C) 2024  Interneuron Limited
+//Copyright(C) 2025  Interneuron Limited
 
 //This program is free software: you can redistribute it and/or modify
 //it under the terms of the GNU General Public License as published by
@@ -53,7 +53,7 @@
 //     GetExistingWarnings(refreshfromdb: boolean, cb) {
 //         if (refreshfromdb) {
 //             this.loader = true;
-//             this.subjects.refreshWarning.next();
+//             this.subjects.refreshWarning.next(true);
 //             this.subscriptions.add(this.apiRequest.getRequest(this.appService.baseURI + "/GetList?synapsenamespace=local&synapseentityname=epma_warnings&synapseattributename=person_id&attributevalue=" + this.appService.personId).subscribe(
 //                 (response) => {
 //                     let responseArray: Warnings[] = JSON.parse(response);
@@ -72,7 +72,7 @@
 //     RefreshCurrentMedicationWarnings(CurrentPrescriptions, patientInfo, cb) {
 //         let products = this.getFDBProducts(null, CurrentPrescriptions, patientInfo);
 //         this.loader = true;
-//         this.subjects.refreshWarning.next();
+//         this.subjects.refreshWarning.next(true);
 //         // call FDB api
 //         this.subscriptions.add(this.apiRequest.postRequest(this.appService.fdbURI, products).subscribe(
 //             (response) => {
@@ -157,7 +157,7 @@
 //         let products = this.getFDBProducts(ProspectivePrescriptions, CurrentPrescriptions, patientInfo);
 //         // call FDB api
 //         this.loader = true;
-//         this.subjects.refreshWarning.next();
+//         this.subjects.refreshWarning.next(true);
 //         this.subscriptions.add(this.apiRequest.postRequest(this.appService.fdbURI, products).subscribe(
 //             (response) => {
 //                 let responseArray: Warnings[] = response;
@@ -199,7 +199,7 @@
 //     }
 //     CommitNewWarningsToDB(cb) {
 //         this.loader = true;
-//         this.subjects.refreshWarning.next();
+//         this.subjects.refreshWarning.next(true);
 //         // For contraindications, precautions, drugwarnings , mandatoryinstructions, safetymessages 
 //         // get all existing comments
 //         let comments = this.existingWarnigns.filter(x => (x.warningtype == WarningType.contraindication
@@ -237,13 +237,13 @@
 //             this.appService.logToConsole(resp);
 //             upsertManager.destroy();
 //             this.loader = false;
-//             this.subjects.refreshWarning.next();
+//             this.subjects.refreshWarning.next(true);
 //         },
 //             (error) => {
 //                 this.appService.logToConsole(error);
 //                 upsertManager.destroy();
 //                 this.loader = false;
-//                 this.subjects.refreshWarning.next();
+//                 this.subjects.refreshWarning.next(true);
 //             }
 //         );
 
@@ -516,7 +516,7 @@
 
 //         this.overrideNewWarning = this.newWarnings.filter(x => x.overriderequired).sort((a, b) => a.warningtype.localeCompare(b.warningtype));
 //         this.otherNewWarning = this.newWarnings.filter(x => !x.overriderequired).sort((a, b) => a.warningtype.localeCompare(b.warningtype));
-//         this.subjects.refreshWarning.next();
+//         this.subjects.refreshWarning.next(true);
 //     }
 
 // }

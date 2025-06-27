@@ -1,7 +1,7 @@
 //BEGIN LICENSE BLOCK 
 //Interneuron Terminus
 
-//Copyright(C) 2024  Interneuron Limited
+//Copyright(C) 2025  Interneuron Limited
 
 //This program is free software: you can redistribute it and/or modify
 //it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
 //END LICENSE BLOCK 
 import { Injectable } from '@angular/core';
 import { Encounter } from '../models/encounter.model';
-import jwt_decode from 'jwt-decode';
+import {jwtDecode} from 'jwt-decode';
 import { Prescription, Posology, Dose, DoseEvents, Medication, Medicationadministration, Medicationcodes, Medicationingredients, Medicationroutes, MetaPrescriptionstatus, MetaPrescriptionduration, MetaPrescriptionadditionalcondition, Prescriptionroutes, InfusionEvents, PrescriptionSource, Oxygendevices, MetaReviewstatus, SupplyRequest, Prescriptionreminders, Prescriptionreviewstatus, MetaPrescriptioncontext } from "src/app/models/EPMA"
 import { action } from '../models/filter.model';
 import { Observation, Observationscaletype, PersonObservationScale } from '../models/observations.model';
@@ -212,7 +212,7 @@ export class AppService {
 
   decodeAccessToken(token: string): any {
     try {
-      return jwt_decode(token);
+      return jwtDecode(token);
     }
     catch (Error) {
       this.logToConsole(`Error: ${Error}`);

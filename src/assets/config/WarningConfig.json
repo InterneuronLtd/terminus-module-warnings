@@ -199,5 +199,6 @@
       "severity": 1,
       "overriderequired": false
     }
-  ]
+  ],
+  "enableRBAC":true
 }
